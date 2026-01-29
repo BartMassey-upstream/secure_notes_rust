@@ -4,7 +4,7 @@ struct Note {
     content: String,
 }
 
-fn first_choice(book: &mut Vec<Note>) {
+fn add_note(book: &mut Vec<Note>) {
     println!("Enter your Title:");
 
     let mut title_input = String::new();
@@ -106,7 +106,7 @@ fn main() {
         let choice = input.trim();
 
         if choice == "1" {
-            first_choice(&mut notes);
+            add_note(&mut notes);
         } else if choice == "2" {
             list_items(&notes);
         } else if choice == "3" {
