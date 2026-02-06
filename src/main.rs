@@ -83,7 +83,7 @@ fn password_auth() -> Result<(), anyhow::Error> {
             .read_line(&mut password)
             .expect("Failed to read");
         let password = password.trim();
-        // XXX Replace hardcoded password!
+        // XXX Replace hardcoded password! (done)
         if password == secret {
             println!("Access Granted");
             return Ok(());
