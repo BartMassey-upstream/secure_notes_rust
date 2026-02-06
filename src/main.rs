@@ -3,7 +3,8 @@
 //!
 //! Allow secure creation and reading of notes.
 
-use std::{io, process};
+
+use std::{fs, io, process, thread, time};
 
 extern crate anyhow;
 
@@ -68,8 +69,14 @@ fn search(notes: &Vec<Note>) {
 
 /// Get and check the password.
 fn password_auth() -> Result<(), anyhow::Error> {
+    // Created a file to store password instead of hardcoding (change -> done)
+
+    let secret = fs::read_to_string("secret.txt")?;
+    let secret = secret.trim();
+
     println!("Enter the password:");
-    // XXX Limited number of retries, then return failure.
+
+    // XXX Limited number of retries, then return failure.(done)
     for attempts in 0..3 {
         let mut password = String::new();
         io::stdin()
@@ -77,16 +84,19 @@ fn password_auth() -> Result<(), anyhow::Error> {
             .expect("Failed to read");
         let password = password.trim();
         // XXX Replace hardcoded password!
-        if password == "letmein" {
+        if password == secret {
             println!("Access Granted");
             return Ok(());
         } else {
             println!("Access Denied");
         }
         if attempts < 2 {
-            println!("Please try again:");
+            println!("Please try again in a couple of seconds:");
+             // XXX Sleep for a second or so to reduce attempts per second.(done)
+            thread::sleep(time::Duration::from_secs(2));
+            
         }
-        // XXX Sleep for a second or so to reduce attempts per second.
+       
     }
     anyhow::bail!("password auth failed")
 }
