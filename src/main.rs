@@ -1,27 +1,32 @@
-use std::io;
+//! # Secure Notes
+//! Vamsi Myla
+//!
+//! Allow secure creation and reading of notes.
+
+use std::{io, process};
+
+extern crate anyhow;
+
+/// A note with title and content.
 struct Note {
     title: String,
     content: String,
 }
 
+/// Add a note to storage.
 fn add_note(book: &mut Vec<Note>) {
     println!("Enter your Title:");
-
     let mut title_input = String::new();
-
     io::stdin()
         .read_line(&mut title_input)
         .expect("Failed to read");
-
     let title_input = title_input.trim().to_string();
 
     println!("Enter your Content:");
     let mut content_input = String::new();
-
     io::stdin()
         .read_line(&mut content_input)
         .expect("Failed to read");
-
     let content_input = content_input.trim().to_string();
 
     let note_object = Note {
@@ -30,10 +35,11 @@ fn add_note(book: &mut Vec<Note>) {
     };
 
     println!("Notes saved!");
-
     book.push(note_object);
 }
 
+/// Show title and content of all notes.
+// XXX Allow just titles.
 fn list_items(item: &Vec<Note>) {
     println!("----The following is the list of items----");
     for note_object in item {
@@ -42,80 +48,75 @@ fn list_items(item: &Vec<Note>) {
     }
 }
 
-fn search(sch: &Vec<Note>) {
-    println!("Enter the keyword:");
+/// Search note titles for matching string.
+fn search(notes: &Vec<Note>) {
+    println!("Search text:");
 
     let mut key = String::new();
-
     io::stdin().read_line(&mut key).expect("Failed to read");
+    let key = key.trim().to_lowercase();
 
-    let key = key.trim();
+    for note_object in notes {
+        let is_matching = note_object.title.to_lowercase().contains(&key);
 
-    for note_object in sch {
-        if note_object
-            .title
-            .to_lowercase()
-            .contains(&key.to_lowercase())
-        {
+        if is_matching {
             println!("{}", note_object.title);
             println!("{}", note_object.content);
         }
     }
 }
 
-fn pass_authentication() {
+/// Get and check the password.
+fn password_auth() -> Result<(), anyhow::Error> {
     println!("Enter the password:");
-    loop {
-        let mut pas = String::new();
-
-        io::stdin().read_line(&mut pas).expect("Failed to read");
-
-        let pas = pas.trim();
-
-        if pas == "letmein" {
+    // XXX Limited number of retries, then return failure.
+    for attempts in 0..3 {
+        let mut password = String::new();
+        io::stdin()
+            .read_line(&mut password)
+            .expect("Failed to read");
+        let password = password.trim();
+        // XXX Replace hardcoded password!
+        if password == "letmein" {
             println!("Access Granted");
-            break;
+            return Ok(());
         } else {
             println!("Access Denied");
+        }
+        if attempts < 2 {
             println!("Please try again:");
         }
+        // XXX Sleep for a second or so to reduce attempts per second.
     }
+    anyhow::bail!("password auth failed")
 }
 
-fn menu() {
-    println!("--- NOTE KEEPER ---");
-    println!("1. Add Note");
-    println!("2. List Notes");
-    println!("3. Exit");
-    println!("4. Search for Keyword");
-    println!("Enter choice:");
-}
-
-fn exit() {
-    println!("Exited successfully");
-}
+/// Run the secure notes app.
 fn main() {
-    pass_authentication();
+    if password_auth().is_err() {
+        process::exit(1);
+    }
 
     let mut notes: Vec<Note> = Vec::new();
 
     loop {
-        menu();
+        println!("--- NOTE KEEPER ---");
+        println!("1. Add Note");
+        println!("2. List Notes");
+        println!("3. Search for Keyword");
+        println!("4. Exit");
+        println!("Enter choice:");
+
         let mut input = String::new();
         io::stdin().read_line(&mut input).expect("Failed to read");
         let choice = input.trim();
 
-        if choice == "1" {
-            add_note(&mut notes);
-        } else if choice == "2" {
-            list_items(&notes);
-        } else if choice == "3" {
-            exit();
-            break;
-        } else if choice == "4" {
-            search(&notes);
-        } else {
-            println!("Invalid error! Please enter a number from the choices provided only.")
+        match choice {
+            "1" => add_note(&mut notes),
+            "2" => list_items(&notes),
+            "3" => search(&notes),
+            "4" => break,
+            _ => println!("Unknown choice."),
         }
     }
 }

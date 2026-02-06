@@ -1,8 +1,9 @@
 # Secure Notes Project 🦀
+Vamsi Myla 2026
 
 A modular CLI (Command Line Interface) application built to master core Rust programming concepts, focusing on memory safety and data organization.
 
-## 📖 Description
+## Description
 
 **The Goal:** To allow an authenticated user to create, read, and search secure notes using a persistent runtime storage system.
 
@@ -14,7 +15,7 @@ This project demonstrates my understanding of:
 - **Algorithms:** Implementing a case-insensitive linear search.
 - **Refactoring:** Breaking a monolithic `main` function into clean, reusable components.
 
-## 🛠️ How It Works
+## How It Works
 
 ### 1. Data Structure (Structs)
 
