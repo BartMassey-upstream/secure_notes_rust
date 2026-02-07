@@ -3,7 +3,7 @@
 //!
 //! Allow secure creation and reading of notes.
 
-
+use bcrypt::verify;
 use std::{fs, io, process, thread, time};
 
 extern crate anyhow;
@@ -84,7 +84,8 @@ fn password_auth() -> Result<(), anyhow::Error> {
             .expect("Failed to read");
         let password = password.trim();
         // XXX Replace hardcoded password! (done)
-        if password == secret {
+        // Implemented bcrypt hashing to make the password secure.
+        if verify(&password, &secret).unwrap_or(false) {
             println!("Access Granted");
             return Ok(());
         } else {
