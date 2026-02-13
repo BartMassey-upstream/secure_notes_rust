@@ -4,7 +4,7 @@
 //! Allow secure creation and reading of notes.
 
 use bcrypt::verify;
-use clap::{Parser,Subcommand};
+use clap::{Parser, Subcommand};
 use std::{fs, io, process, thread, time};
 
 use serde::{Deserialize, Serialize};
@@ -22,32 +22,26 @@ struct Note {
 
 // function to read the string from json file and load it in the vector.
 fn load_notes() -> Vec<Note> {
-    
-    match fs::read_to_string(VM_FILE) {  
+    match fs::read_to_string(VM_FILE) {
         Ok(content) => {
             let notes: Vec<Note> = serde_json::from_str(&content).unwrap_or_else(|_| {
-                println!("⚠️ Warning: Database corrupted. Starting fresh.");
+                println!("Warning: Database corrupted. Starting fresh.");
                 Vec::new()
             });
             notes
         }
-        Err(_) => {
-            Vec::new()
-        }
+        Err(_) => Vec::new(),
     }
 }
-
-
 
 //function to save the loaded notes
 fn save_notes(notes: &Vec<Note>) {
     let json_content = serde_json::to_string_pretty(notes).expect("Failed to serialize data");
-        
-    fs::write(VM_FILE, json_content).expect("Failed to write to database");
-    
-    println!("💾 Database updated.");
-}
 
+    fs::write(VM_FILE, json_content).expect("Failed to write to database");
+
+    println!("Database updated.");
+}
 
 // to display the list of items entered so far
 fn list_items(item: &Vec<Note>) {
@@ -84,11 +78,9 @@ fn password_auth() -> Result<(), anyhow::Error> {
         }
         if attempts < 2 {
             println!("Please try again in a couple of seconds:");
-             // XXX Sleep for a second or so to reduce attempts per second.(done)
+            // XXX Sleep for a second or so to reduce attempts per second.(done)
             thread::sleep(time::Duration::from_secs(2));
-            
         }
-       
     }
     anyhow::bail!("password auth failed")
 }
@@ -112,8 +104,13 @@ enum Commands {
     },
     /// List all notes
     List,
-}
 
+    //Edit notes
+    Edit {
+        title: String,
+        content: String,
+    },
+}
 
 /// Run the secure notes app.
 fn main() {
@@ -148,6 +145,29 @@ fn main() {
                 println!("No notes found.");
             } else {
                 list_items(&notes);
+            }
+        }
+
+        Commands::Edit { title, content } => {
+            println!("Searching for note: '{}'...", title);
+
+            // 1. iter_mut() lets us change the note if we find it
+            let note_option = notes.iter_mut().find(|note| note.title == *title);
+
+            match note_option {
+                Some(note) => {
+                    // 2. Found it! Update the content.
+                    // We clone() to give the note its OWN copy of the text string.
+                    note.content = content.clone();
+
+                    println!("Note updated!");
+
+                    // 3. Save to disk immediately
+                    save_notes(&notes);
+                }
+                None => {
+                    println!("Error: Note not found.");
+                }
             }
         }
     }
