@@ -53,7 +53,7 @@ fn list_items(item: &Vec<Note>) {
 }
 
 /// Get and check the password.
-fn password_auth() -> Result<(), anyhow::Error> {
+fn password_auth() -> anyhow::Result<()> {
     // Created a file to store password instead of hardcoding (change -> done)
 
     let secret = fs::read_to_string("secret.txt")?;
@@ -110,6 +110,8 @@ enum Commands {
         title: String,
         content: String,
     },
+     //Search for information in title or content
+    Search{query:String},
 }
 
 /// Run the secure notes app.
@@ -169,6 +171,34 @@ fn main() {
                     println!("Error: Note not found.");
                 }
             }
+        }
+
+        Commands::Search { query }=>{
+
+                println!("Searching for: '{}'...\n", query);
+            
+            // We use a flag to track if we actually found anything
+            let mut found_any = false;
+
+            // 1. iter() because we are ONLY reading, not modifying!
+            for note in notes.iter() {
+                // 2. Make everything lowercase so "Milk" and "milk" both match
+                let title_lower = note.title.to_lowercase();
+                let content_lower = note.content.to_lowercase();
+                let query_lower = query.to_lowercase();
+
+                // 3. Check if the query is inside the title OR (||) the content
+                if title_lower.contains(&query_lower) || content_lower.contains(&query_lower) {
+                    println!("{}: {}", note.title, note.content);
+                    found_any = true;
+                }
+            }
+
+            // 4. If the loop finishes and we didn't find anything, tell the user
+            if !found_any {
+                println!("No notes found containing '{}'.", query);
+            }
+
         }
     }
 }
