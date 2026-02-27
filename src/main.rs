@@ -22,25 +22,56 @@ struct Note {
 
 // function to read the string from json file and load it in the vector.
 fn load_notes() -> Vec<Note> {
-    match fs::read_to_string(VM_FILE) {
-        Ok(content) => {
-            let notes: Vec<Note> = serde_json::from_str(&content).unwrap_or_else(|_| {
-                println!("Warning: Database corrupted. Starting fresh.");
-                Vec::new()
-            });
-            notes
+    // 1. Try to read the file
+    let read_result = std::fs::read_to_string(VM_FILE);
+
+    match read_result {
+        Ok(json_string) => {
+            // 2. The file exists! Now try to parse the JSON text.
+            let parse_result = serde_json::from_str(&json_string);
+            
+            match parse_result {
+                Ok(notes) => {
+                    // Success! Return the notes.
+                    notes 
+                }
+                Err(error) => {
+                    // The file exists, but the JSON is broken/corrupted!
+                    eprintln!("Warning: Data file is corrupted. Starting with an empty list.");
+                    eprintln!("Details: {}", error);
+                    Vec::new() // Return an empty vector so the program doesn't crash
+                }
+            }
         }
-        Err(_) => Vec::new(),
+        Err(_) => {
+            // The file doesn't exist yet (e.g., the very first time running the app).
+            // This is completely normal. Just silently return an empty list.
+            Vec::new() 
+        }
     }
 }
 
 //function to save the loaded notes
 fn save_notes(notes: &Vec<Note>) {
-    let json_content = serde_json::to_string_pretty(notes).expect("Failed to serialize data");
+    // 1. Convert vector to string (this rarely fails, but we still handle it)
+    let json_string = serde_json::to_string(notes).expect("Failed to serialize data");
 
-    fs::write(VM_FILE, json_content).expect("Failed to write to database");
+    // 2. The risky part: Writing to the hard drive
+    let write_result = std::fs::write(VM_FILE, json_string);
 
-    println!("Database updated.");
+    // 3. Match the result!
+    match write_result {
+        Ok(_) => {
+            // It worked! We use '_' because we don't need the actual Ok value
+            // We can just silently succeed.
+        }
+        Err(error) => {
+            // It failed! Print a nice user-friendly error.
+            // eprintln! is like println!, but specifically for errors.
+            eprintln!("Critical Error: Could not save notes to the hard drive!");
+            eprintln!("Technical details: {}", error);
+        }
+    }
 }
 
 // to display the list of items entered so far
