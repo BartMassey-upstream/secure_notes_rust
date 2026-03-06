@@ -5,7 +5,8 @@
 
 use bcrypt::{hash_bytes, verify};
 use clap::{Parser, Subcommand};
-use std::{fs, io, process, thread, time};
+use prompted::input;
+use std::{fs, process, thread, time};
 
 use serde::{Deserialize, Serialize};
 
@@ -97,13 +98,8 @@ fn password_auth() {
     };
     let secret = secret.trim();
 
-    println!("Enter the password:");
-
     for attempts in 0..3 {
-        let mut password = String::new();
-        io::stdin()
-            .read_line(&mut password)
-            .expect("Failed to read");
+        let password = input!("Enter the password: ");
         let password = password.trim();
         if verify(password, secret).unwrap_or(false) {
             println!("Access Granted");
