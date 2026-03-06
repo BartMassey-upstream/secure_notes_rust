@@ -29,11 +29,11 @@ fn load_notes() -> Vec<Note> {
         Ok(json_string) => {
             // 2. The file exists! Now try to parse the JSON text.
             let parse_result = serde_json::from_str(&json_string);
-            
+
             match parse_result {
                 Ok(notes) => {
                     // Success! Return the notes.
-                    notes 
+                    notes
                 }
                 Err(error) => {
                     // The file exists, but the JSON is broken/corrupted!
@@ -46,7 +46,7 @@ fn load_notes() -> Vec<Note> {
         Err(_) => {
             // The file doesn't exist yet (e.g., the very first time running the app).
             // This is completely normal. Just silently return an empty list.
-            Vec::new() 
+            Vec::new()
         }
     }
 }
@@ -101,7 +101,7 @@ fn password_auth() -> anyhow::Result<()> {
         let password = password.trim();
         // XXX Replace hardcoded password! (done)
         // Implemented bcrypt hashing to make the password secure.
-        if verify(&password, &secret).unwrap_or(false) {
+        if verify(password, secret).unwrap_or(false) {
             println!("Access Granted");
             return Ok(());
         } else {
@@ -141,8 +141,10 @@ enum Commands {
         title: String,
         content: String,
     },
-     //Search for information in title or content
-    Search{query:String},
+    //Search for information in title or content
+    Search {
+        query: String,
+    },
 }
 
 /// Run the secure notes app.
@@ -204,10 +206,9 @@ fn main() {
             }
         }
 
-        Commands::Search { query }=>{
+        Commands::Search { query } => {
+            println!("Searching for: '{}'...\n", query);
 
-                println!("Searching for: '{}'...\n", query);
-            
             // We use a flag to track if we actually found anything
             let mut found_any = false;
 
@@ -229,7 +230,6 @@ fn main() {
             if !found_any {
                 println!("No notes found containing '{}'.", query);
             }
-
         }
     }
 }
