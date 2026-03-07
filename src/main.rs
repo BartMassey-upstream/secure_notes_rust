@@ -81,6 +81,17 @@ fn save_notes(notes: &Vec<Note>) {
     }
 }
 
+fn read_stdin() -> String {
+    use std::io::Read;
+
+    let mut stdin = std::io::stdin();
+    let mut result = String::new();
+    if stdin.read_to_string(&mut result).is_err() {
+        bail!("could not read standard input");
+    }
+    result
+}
+
 // to display the list of items entered so far
 fn list_items(item: &Vec<Note>) {
     println!("----The following is the list of items----");
@@ -126,28 +137,18 @@ struct Cli {
 #[derive(Subcommand)]
 enum Commands {
     /// Add a new note
-    Add {
-        /// The title of the note
-        title: String,
-        /// The content of the note
-        content: String,
-    },
+    Add { title: String },
     /// List all notes
     List,
-
-    //Edit notes
+    /// Edit notes
     Edit {
+        /// The title of the note
         title: String,
-        content: String,
     },
-    //Search for information in title or content
-    Search {
-        query: String,
-    },
+    /// Search for information in title or content
+    Search { query: String },
     /// Set the password (only works on first run)
-    Password {
-        password: String,
-    },
+    Password { password: String },
 }
 
 /// Run the secure notes app.
@@ -157,12 +158,12 @@ fn main() {
 
     // 2. Execute the specific command
     match &cli.command {
-        Commands::Add { title, content } => {
+        Commands::Add { title } => {
             let mut notes = load_notes();
             password_auth();
             let new_note = Note {
                 title: title.clone(),
-                content: content.clone(),
+                content: read_stdin(),
             };
             notes.push(new_note);
             println!(" Note added: {}", title);
@@ -178,7 +179,7 @@ fn main() {
             }
         }
 
-        Commands::Edit { title, content } => {
+        Commands::Edit { title } => {
             let mut notes = load_notes();
             println!("Searching for note: '{}'...", title);
 
@@ -187,7 +188,7 @@ fn main() {
             match note_option {
                 Some(note) => {
                     password_auth();
-                    note.content = content.clone();
+                    note.content = read_stdin();
                     println!("Note updated!");
                     save_notes(&notes);
                 }
