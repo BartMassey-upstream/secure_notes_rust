@@ -1,4 +1,5 @@
-# Secure Notes Project 🦀
+# Secure Notes Project
+
 Vamsi Myla 2026
 
 A modular CLI (Command Line Interface) application built to master core Rust programming concepts, focusing on memory safety and data organization.
